@@ -37,7 +37,7 @@ class Siro(pg.sprite.Sprite):
 class Cannon(pg.sprite.Sprite): #大砲について
     def __init__(self):
         super().__init__()
-        self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/beam.png"), 0, 1.0) #ビームの画像を倍率1倍で挿入している
+        self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/beam.png"), 0, 3.0) #ビームの画像を倍率3倍で挿入している
         self.image = pg.transform.flip(self.image, True, False) #ビームを左右反転させている
         self.rect = self.image.get_rect()
         self.rect.center = (1400, 550) #ビームの座標
@@ -80,8 +80,8 @@ def main():
         
         screen.blit(bg_img, [0, 0])
 
-        if tmr >=5:
-            screen.blit(text, (800, 500))
+        if tmr >=5 and not cannon.fired:
+            screen.blit(text, (1350, 200))
             
         cannon.update(screen)
 
