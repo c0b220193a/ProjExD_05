@@ -30,6 +30,22 @@ class Siro(pg.sprite.Sprite):
         城の描画判定
         """
         screen.blit(self.image, self.rect)
+class Money:
+    def __init__(self,amount):
+        self.amount=amount
+        self.font = pg.font.Font(None, 50)
+        self.color = (0, 0, 255)
+        self.image = self.font.render(f"MONEY: {self.amount}/3000yen", 0, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = 200, HEIGHT-50
+    def increase(self, amount): # お金が増える関数、3000で止まる
+        if self.amount == 3000:
+            self.amount = 3000
+        else:
+            self.amount += amount
+    def update(self, screen: pg.Surface):
+        self.image = self.font.render(f"MONEY: {self.amount}/3000yen", 0, self.color)
+        screen.blit(self.image, self.rect)
 
 def main():
     pg.display.set_caption("アニマル闘争")
@@ -38,14 +54,22 @@ def main():
 
     tmr = 0
     clock = pg.time.Clock()
+    money = Money(0)
+
 
     enemy_siro = Siro(0, 200, 0.4)
     siro = Siro(1, 1400, 0.3)
-    while True:                 
+    while True:
+        key_lst = pg.key.get_pressed()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                return 0  
         screen.blit(bg_img, [0, 0])
 
         enemy_siro.update(screen)
         siro.update(screen)
+        money.increase(1) # Increase the money
+        money.update(screen)
         pg.display.update()
 
         tmr += 1
