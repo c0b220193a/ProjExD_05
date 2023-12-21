@@ -5,7 +5,6 @@ import sys
 import time
 import pygame as pg
 
-
 WIDTH = 1600  # ゲームウィンドウの幅
 HEIGHT = 900  # ゲームウィンドウの高さ
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
@@ -37,12 +36,35 @@ class Siro(pg.sprite.Sprite):
         self.rect.center = zahyo, 550
         self.hp = 1000
 
-
     def update(self, screen: pg.Surface):
         """
         城の描画判定
         """
         screen.blit(self.image, self.rect)
+
+class Shoten(pg.sprite.Sprite):
+    """
+    友達や敵のHPが0になったときに昇天の画像を作る。
+    引数として座標が送られる。
+    """
+    def __init__(self, zahyo):
+        super().__init__()
+        img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/shoten.png"), 0, 3.0)
+        self.image = img  #昇天の画像を作成
+        self.rect = self.image.get_rect()  #れくとを生成
+        self.rect.center = zahyo
+        self.speed = 2  #上に上がるスピードを定義
+
+    def update(self, screen:pg.Surface):
+        """
+        昇天画像を上に上昇させる。
+        """
+        self.rect.move_ip(0, -self.speed)
+        screen.blit(self.image, self.rect)
+        if check_bound(self.rect) != (True, True):
+            self.kill()
+    
+
 
 class Tomo(pg.sprite.Sprite):
     """
@@ -61,7 +83,7 @@ class Tomo(pg.sprite.Sprite):
         self.state = "normal"  #猫の状態を定義
         self.hp = 500
         self.attack = 20
-    
+
     def update(self, screen:pg.Surface):
         """
         猫を自陣から左に移動させる。
@@ -77,13 +99,12 @@ class Tomo(pg.sprite.Sprite):
             screen.blit(self.image, self.rect)
             self.kill()
 
-        
-
 def main():
     pg.display.set_caption("アニマル闘争")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load(f"{MAIN_DIR}/fig/haikei.jpg")
     cats = pg.sprite.Group()
+    shotens = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -98,7 +119,7 @@ def main():
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_1:
                     cats.add(Tomo("cat"))  #ねこを追加
-        
+
         for cat in cats:
             if len(pg.sprite.spritecollide(enemy_siro, [cat], False)) != 0:  # ねこと敵城がぶつかったときに止まり攻撃
                 cat.state = "atk"
@@ -108,23 +129,23 @@ def main():
                 pg.display.update()
             else:
                 cat.state = "normal"
+            if cat.hp <= 0:
+                cat.state = "death"
+                shotens.add(Shoten(cat.rect.center))
 
         if enemy_siro.hp <= 0:
             return
-            
-
 
         screen.blit(bg_img, [0, 0])
 
         enemy_siro.update(screen)
         siro.update(screen)
         cats.update(screen)
+        shotens.update(screen)
         pg.display.update()
 
         tmr += 1
         clock.tick(50)
-
-
 
 if __name__ == "__main__":
     pg.init()
