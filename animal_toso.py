@@ -10,6 +10,8 @@ WIDTH = 1600  # ゲームウィンドウの幅
 HEIGHT = 900  # ゲームウィンドウの高さ
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 
+
+
 class Siro(pg.sprite.Sprite):
     def __init__(self, num: int, zahyo: int, size: float):
         """
@@ -33,18 +35,18 @@ class Siro(pg.sprite.Sprite):
 class Money:
     def __init__(self,amount):
         self.amount=amount
-        self.font = pg.font.Font(None, 50)
-        self.color = (0, 0, 255)
-        self.image = self.font.render(f"MONEY: {self.amount}/3000yen", 0, self.color)
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color = (255, 220, 0)
+        self.image = self.font.render(f"{self.amount}/3000円", 0, self.color)
         self.rect = self.image.get_rect()
-        self.rect.center = 200, HEIGHT-50
+        self.rect.center = 1450, 50
     def increase(self, amount): # お金が増える関数、3000で止まる
-        if self.amount == 3000:
+        if self.amount >= 3000:
             self.amount = 3000
         else:
             self.amount += amount
     def update(self, screen: pg.Surface):
-        self.image = self.font.render(f"MONEY: {self.amount}/3000yen", 0, self.color)
+        self.image = self.font.render(f"{self.amount}/3000円", 0, self.color)
         screen.blit(self.image, self.rect)
 
 def main():
