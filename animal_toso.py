@@ -3,7 +3,9 @@ import os
 import random
 import sys
 import time
+from typing import Any
 import pygame as pg
+from pygame.sprite import AbstractGroup
 
 
 WIDTH = 1600  # ゲームウィンドウの幅
@@ -32,7 +34,7 @@ class Siro(pg.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
-class Exploaion(pg.sprite.Sprite):
+class Explosion(pg.sprite.Sprite):
     """
     爆発エフェクトに関するクラス
     """
@@ -59,11 +61,40 @@ class Exploaion(pg.sprite.Sprite):
         引数2 screen:画面Surface
         """
         if num == 1:
-            screen.blit(self.bakuhatu1_img, self.rect1)
+            screen.blit(self.bakuhatu1_img, self.rect1) # 小爆発
         elif num == 2:
-            screen.blit(self.bakuhatu2_img, self.rect2)
+            screen.blit(self.bakuhatu2_img, self.rect2) # 中爆発
         elif num == 3:
-            screen.blit(self.bakuhatu3_img, self.rect3)
+            screen.blit(self.bakuhatu3_img, self.rect3) # 大爆発
+
+
+class Collapse(pg.sprite.Sprite):
+    """
+    城崩壊に関するクラス
+    """
+    def __init__(self, zahyo):
+        """
+        城が崩壊する画像を生成する
+        引数1 zahyo:hpが0になった城の座標
+        """
+        super().__init__()
+        self.siro_houkai1_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/siro_houkai1.png"), 0, 4.75)
+        self.siro_houkai2_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/siro_houkai2.png"), 0, 4.2)
+        self.rect1 = self.siro_houkai1_img.get_rect()
+        self.rect2 = self.siro_houkai2_img.get_rect()
+        self.rect1.center = zahyo, 550
+        self.rect2.center = zahyo, 550
+    
+    def update(self, num, screen):
+        """
+        城が崩壊した画像に切り替える
+        引数1 num:どの画像を使うか
+        引数2 screen:画面Surface
+        """
+        if num == 1:
+            screen.blit(self.siro_houkai1_img, self.rect1) # 味方の城の崩壊後の画像
+        elif num == 2:
+            screen.blit(self.siro_houkai2_img, self.rect2) # 敵の城の崩壊後の画像
 
 
 def main():
@@ -73,6 +104,7 @@ def main():
 
     tmr = 0
     tmr5 = 450
+    gamemode = 0
     clock = pg.time.Clock()
 
     enemy_siro = Siro(0, 200, 0.4)
@@ -84,28 +116,46 @@ def main():
                 return 0                 
         screen.blit(bg_img, [0, 0])
 
-        enemy_siro.update(screen)
-        siro.update(screen)
-        if siro.hp <= 0: # 味方の城のHPが0の時
-            exploaion = Exploaion(200)
-            tmr5 = 0
-            if tmr5 <= 100:
-                exploaion.update(1, screen)
-            elif tmr5 <= 200:
-                exploaion.update(2, screen)
-            elif tmr5 < 300:
-                exploaion.update(3, screen)
-        
+        if gamemode == 0:
+            enemy_siro.update(screen)
+            siro.update(screen)
+        elif gamemode == 1:
+            enemy_siro.update(screen)
+        elif gamemode == 2:
+            siro.update(screen)
 
+        if siro.hp <= 0: # 味方の城のHPが0の時
+            explosion = Explosion(1400)
+            collapse = Collapse(1400)
+            if not tmr5 <= 450:
+                tmr5 = 0
+            elif tmr5 <= 450:
+                if tmr5 <= 30:
+                    explosion.update(1, screen)
+                elif tmr5 <= 60:
+                    explosion.update(2, screen)
+                elif tmr5 <= 90:
+                    explosion.update(3, screen)
+                    gamemode =1
+                elif tmr5 < 450:
+                    collapse.update(1,screen)
+                    
         elif enemy_siro.hp <= 0: # 敵の城のHPが0の時
-            exploaion = Exploaion(1400)
-            tmr5 = 0
-            if tmr5 <= 100:
-                exploaion.update(1, screen)
-            elif tmr5 <= 200:
-                exploaion.update(2, screen)
-            elif tmr5 < 300:
-                exploaion.update(3, screen)
+            explosion = Explosion(200)
+            collapse = Collapse(200)
+            if not tmr5 <= 450:
+                tmr5 = 0
+            elif tmr5 <= 450:
+                if tmr5 <= 30:
+                    explosion.update(1, screen)
+                elif tmr5 <= 60:
+                    explosion.update(2, screen)
+                elif tmr5 <= 90:
+                    explosion.update(3, screen)
+                    gamemode =2
+                elif tmr5 < 450:
+                    collapse.update(2,screen)
+
             
         pg.display.update()
 
