@@ -42,6 +42,24 @@ class Siro(pg.sprite.Sprite):
         """
         screen.blit(self.image, self.rect)
 
+class Inf(pg.sprite.Sprite):
+    def __init__(self, name, zahyo: int, size: float):
+        """
+        猫とキリンの情報の画像を出力
+        """
+        super().__init__()
+        img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/{name}.png"), 0, size)
+
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.center = zahyo, 780
+
+    def update(self, screen: pg.Surface):
+        """
+        ネコとキリンの情報の画像を描画
+        """
+        screen.blit(self.image, self.rect)
+
 class Shoten(pg.sprite.Sprite):
     """
     友達や敵のHPが0になったときに昇天の画像を作る。
@@ -220,6 +238,8 @@ def main():
 
     enemy_siro = Siro(0, 200, 0.4)
     siro = Siro(1, 1400, 0.3)
+    catinf = Inf("catinf", 600, 0.8)
+    giraffeinf = Inf("giraffeinf", 900, 0.8)
     while True:
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -266,6 +286,9 @@ def main():
 
         enemy_siro.update(screen)
         siro.update(screen)
+        giraffeinf.update(screen)
+        catinf.update(screen)
+
         cats.update(screen)
         giraffes.update(screen, tmr)
         shotens.update(screen)
