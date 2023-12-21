@@ -40,18 +40,17 @@ class Cannon(pg.sprite.Sprite): #大砲について
         self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/beam.png"), 0, 3.0) #ビームの画像を倍率3倍で挿入している
         self.image = pg.transform.flip(self.image, True, False) #ビームを左右反転させている
         self.rect = self.image.get_rect()
-        self.rect.center = (1400, 550) #ビームの座標
+        self.rect.center = (1350, 550) #ビームの座標
         self.speed = 10 #ビームのスピード
         self.fired = False
         
-        
-
-
     def update(self, screen):
-        if self.fired:
+        """"
+        ビームの表示
+        """
+        if self.fired: #大砲が発射されたとき
             screen.blit(self.image, self.rect) #ビームの描画
             self.rect.move_ip(-self.speed, 0) #ビームの動き
-
 
 
 def main():
@@ -74,16 +73,16 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0         
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                cannon.fired = True
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr>=5: #タイマーが5以上でスペースキーが押されたとき
+                cannon.fired = True #大砲を発射する
                 
         
         screen.blit(bg_img, [0, 0])
 
-        if tmr >=5 and not cannon.fired:
-            screen.blit(text, (1350, 200))
+        if tmr >=5 and not cannon.fired: #タイマーが5以上で大砲が発射されていない時
+            screen.blit(text, (1340, 700)) #文字を（1340, 700）のところに表示する
             
-        cannon.update(screen)
+        cannon.update(screen) #大砲を更新する
 
         enemy_siro.update(screen)
         siro.update(screen)
