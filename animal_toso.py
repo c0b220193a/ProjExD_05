@@ -76,7 +76,7 @@ class Tomo(pg.sprite.Sprite):
         self.zahyo = random.randint(1, 15)
 
         # ノックバックに関する変数
-        self.hp_thresholds = [0]  #ノックバックする体力
+        self.hp_thresholds = 0  #ノックバックする体力
         self.knockback_distance = 20  #ノックバックする距離
         self.knockback_count = 0  #ノックバックの回数
         self.knockback_limit = 1  #ノックバックの限界
@@ -104,10 +104,9 @@ class Tomo(pg.sprite.Sprite):
         猫を自陣から左に移動させる。
         状態を更新する。体力が一定以下になったときにノックバックする。
         """
-        for threshold in self.hp_thresholds:
-            if self.hp <= threshold and self.knockback_count < len(self.hp_thresholds):
-                self.knockback()
-                self.knockback_count += 1
+        if self.hp <= self.hp_thresholds:
+            self.knockback()
+            self.knockback_count += 1
 
         if self.knockback_count >= self.knockback_limit and self.knockhp >= 900:
             self.knockhp = 0  # ノックバックの限界に達したらknockhpを0にする。
@@ -134,8 +133,8 @@ class Tomo(pg.sprite.Sprite):
 class LongTomo(pg.sprite.Sprite):
     def __init__(self, name):
         super().__init__()
-        self.tmr = random.randint(1, 300)  #300に一回の攻撃のタイミングを決定する。
-        self.range = 300  # 攻撃の射程を定義
+        self.tmr = random.randint(1, 200)  #300に一回の攻撃のタイミングを決定する。
+        self.range = 280  # 攻撃の射程を定義
         self.zahyo = random.randint(1, 15)
 
         img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/{name}.png"), 0, 0.2)
@@ -143,24 +142,47 @@ class LongTomo(pg.sprite.Sprite):
         self.rect = self.image.get_rect()  #れくとを生成
         self.rect.center = 1400, 580-self.zahyo
         self.speed = 1.8
-        self.attack = 80
-        self.hp = 800
-        self.state = "normal"
+        self.attack = 80  #キリンの攻撃力を定義
+        self.hp = 800  #キリンのhpを定義
+        self.state = "normal"  #キリンの状態を定義
+        
+        # ノックバックに関する変数
+        self.hp_thresholds = [0, self.hp/2]  #ノックバックする体力
+        self.knockback_distance = 60  #ノックバックする距離
+        self.knockback_count = 0  #ノックバックの回数
+        self.knockback_limit = 2  #ノックバックの限界
+        self.knockhp = 1000
         
         
-    def motion(self, enemy, tmr):
+    def motion(self, enemy, tmr, screen):
         """
         攻撃モーションを起動する処理
         """
-        if tmr%180 == self.tmr:
+        if tmr%200 == self.tmr:
             enemy.hp -= self.attack
-            self.rect.move_ip(8, 0)
+        if self.tmr-7 <= tmr%200 <= self.tmr+7:
+            self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe2.png"), 0, 0.2)
+            screen.blit(self.image, self.rect)
+        else:
+            self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe.png"), 0, 0.2)
+            screen.blit(self.image, self.rect)
 
 
     def update(self, screen:pg.Surface):
         """
         猫を自陣から左に移動させる。
         """
+
+        if self.hp <= self.hp_thresholds[1] and self.knockback_count == 0:
+            self.knockback()
+            self.knockback_count += 1
+        if self.hp <= self.hp_thresholds[0] and self.knockback_count == 1:
+            self.knockback()
+            self.knockback_count += 1
+
+        if self.knockback_count >= self.knockback_limit and self.knockhp >= 900:
+            self.knockhp = 0  # ノックバックの限界に達したらknockhpを0にする。
+
         if self.state == "normal":
             self.rect.move_ip(-self.speed, 0)
             screen.blit(self.image, self.rect)
@@ -171,6 +193,14 @@ class LongTomo(pg.sprite.Sprite):
         elif self.state == "death":
             screen.blit(self.image, self.rect)
             self.kill()
+        self.knockhp += 1
+
+    def knockback(self):
+        """
+        キャラクターを後退させる（ノックバックする）。
+        """
+        self.rect.move_ip(self.knockback_distance, 0)
+
 
 def main():
     pg.display.set_caption("アニマル闘争")
@@ -209,18 +239,20 @@ def main():
             if 10 <= cat.knockhp <= 100:
                 cat.state = "death"
                 shotens.add(Shoten(cat.rect.center))
-            print(cat.knockhp)
         
         #射程の長いキリンに対する処理
         for giraffe in giraffes:
             if giraffe.rect.center[0] - enemy_siro.rect.center[0] <= giraffe.range:  # 射程内に敵城がある場合
+                giraffe.hp -= 1
                 giraffe.state = "atk"
-                giraffe.motion(enemy_siro, tmr)
+                giraffe.motion(enemy_siro, tmr, screen)
+            elif giraffe.knockhp <= 999:
+                giraffe.state = "atk"
             else:
                 giraffe.state = "normal"
-            if giraffe.hp <= 0:
+            if 10 <= giraffe.knockhp <= 100:
                 giraffe.state = "death"
-                shotens.add(Shoten(cat.rect.center))
+                shotens.add(Shoten(giraffe.rect.center))
 
         if enemy_siro.hp <= 0:
             return
