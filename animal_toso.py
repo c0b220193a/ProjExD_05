@@ -56,7 +56,7 @@ class Enemy(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
         self.image = random.choice(__class__.imgs)
-        self.tmr =random.randint(1, 100)
+        self.tmr =random.randint(5, 100)
         self.vy = random.randint(575, 605)  # 敵出現の縦座標
         self.speed = random.randint(1, 2)  # 敵のスピード変数
 
@@ -86,7 +86,7 @@ class Enemy(pg.sprite.Sprite):
 
 class Attack_effect(pg.sprite.Sprite):
     """
-    攻撃エフェクトに関するクラス
+    モブキャラ攻撃エフェクトに関するクラス
     """
     def __init__(self, obj: "Siro", life: int):
         """
@@ -113,16 +113,16 @@ class Boss(pg.sprite.Sprite):
     ボスに関するクラス
     """
 
-    def __init__(self):
+    def __init__(self, speed: float):
         super().__init__()
-        self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/boss.png"), 0, 8.0)
+        self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/boss.png"), 0, 6.0)
         
 
         self.tmr =random.randint(1, 100)
 
         self.rect = self.image.get_rect()  # ボスのレクト
-        self.rect.center = 200, 400  # ボスの初期位置
-        self.xy = 1 # ボスの移動速度
+        self.rect.center = 200, 460  # ボスの初期位置
+        self.xy = speed # ボスの移動速度
         self.state = "normal"  # 状態
         self.hp_enemy = 1000  # ボスのHP
         self.attack_enemy = 100  # ボスの攻撃力
@@ -144,6 +144,51 @@ class Boss(pg.sprite.Sprite):
         else:
             self.state == "normal"
 
+
+class Attack_effect_boss(pg.sprite.Sprite):
+    """
+    ボス攻撃エフェクトに関するクラス
+    """
+    def __init__(self, obj: "Siro", life: int):
+        """
+        攻撃するエフェクトを生成する
+        引数1 obj：攻撃するSiroまたは
+        引数2 life：発生時間
+        """
+        super().__init__()
+        self.image = pg.image.load(f"{MAIN_DIR}/fig/attack_effect2.png")
+        self.rect = self.image.get_rect(center=(obj.rect.centerx+250, obj.rect.centery))
+        self.life = life
+
+    def update(self):
+        """
+        攻撃時間を1減算した攻撃経過時間_lifeに応じて
+        攻撃エフェクトを表現する
+        """
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
+
+
+class Kanban(pg.sprite.Sprite):
+    def __init__(self, x:int):
+        """
+        看板を置く
+        """
+        super().__init__()
+        img0 = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/kanban.png"), 0, 1)
+        self.img = pg.transform.flip(img0, True, False)  # デフォルトの看板
+
+        self.image = self.img
+        self.rect = self.image.get_rect()
+        self.rect.center = x, 620
+
+    def update(self, screen: pg.Surface):
+        """
+        看板の描画判定
+        """
+        screen.blit(self.image, self.rect)
+
 def main():
     pg.display.set_caption("アニマル闘争")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -158,8 +203,9 @@ def main():
 
     enemy_siro = Siro(0, 200, 0.4)
     siro = Siro(1, 1400, 0.3)
+    kanban = Kanban(1290)
     while True:
-        frame_enemy = random.randint(300, 500)
+        frame_enemy = random.randint(300, 500)  # 敵出現頻度ランダム
         key_lst = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -173,23 +219,22 @@ def main():
                 emy.state = "stop"
                 if tmr%100 == emy.tmr:
                     emy.rect.move_ip(-10,0)  # 攻撃モーション
-                    attack_e.add(Attack_effect(emy, 3)) # 攻撃エフェクト発生
+                    attack_e.add(Attack_effect(emy, 3)) # 攻撃エフェクト発生:数字はエフェクトフレーム
                     siro.hp -= emy.attack_enemy  # 城にダメージ
                     print(siro.hp)
             else:
                 emy.state ="normal"
 
         if siro.hp == 500:
-            boss.add(Boss())
-            siro.hp = 490
+            boss.add(Boss(0.5))
+            siro.hp -= 10
 
         for bos in boss:  # bossが城前で止まり攻撃
             if len(pg.sprite.spritecollide(siro, [bos], False)) != 0:
                 bos.state = "stop"
                 if tmr%500 == 0:
-                    bos.rect.move_ip(-10,0)  # 攻撃モーション
-
-                    attack_e.add(Attack_effect(bos, 4)) # 攻撃エフェクト発生
+                    bos.rect.move_ip(-15,0)  # 攻撃モーション
+                    attack_e.add(Attack_effect_boss(bos, 7)) # 攻撃エフェクト発生:数字はエフェクトフレーム
                     siro.hp -= emy.attack_enemy  # 城にダメージ
             else:
                 bos.state = "normal"
@@ -199,8 +244,9 @@ def main():
 
         enemy_siro.update(screen)
         siro.update(screen)
-        emys.update(screen)
+        kanban.update(screen)
         boss.update(screen)
+        emys.update(screen)
         attack_e.update()
         attack_e.draw(screen)
 
