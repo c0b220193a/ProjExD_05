@@ -38,7 +38,7 @@ class Siro(pg.sprite.Sprite):
         self.image = self.img
         self.rect = self.image.get_rect()
         self.rect.center = zahyo, 550
-        self.hp = 5000
+        self.hp = 1000
 
 
     def update(self, screen: pg.Surface):
@@ -53,33 +53,31 @@ class Enemy(pg.sprite.Sprite):
     """
     imgs = [pg.image.load(f"{MAIN_DIR}/fig/enemy{i}.png") for i in range(1, 6)]
     
-    
-
     def __init__(self):
         super().__init__()
         self.image = random.choice(__class__.imgs)
         self.tmr =random.randint(1, 100)
         self.vy = random.randint(575, 605)  # 敵出現の縦座標
+        self.speed = random.randint(1, 2)  # 敵のスピード変数
 
         self.rect = self.image.get_rect()  # 敵のレクト
         self.rect.center = 200, self.vy  # 敵の初期位置
-        self.xy = 1  # 敵キャラの横方向の移動速度
+        self.xy = self.speed  # 敵キャラの移動速度
         self.state = "normal"  # 状態
-        self.hp_enemy = 100
-        self.attack_enemy = 20
+        self.hp_enemy = 100  # 敵のHP
+        self.attack_enemy = 20  # 敵の攻撃力
 
     def update(self,screen:pg.Surface):
         """
         敵を右から左へ移動
         """
-        if self.state == "normal":  # 
+        if self.state == "normal":  # 通常状態
             self.rect.move_ip(self.xy,0)
             screen.blit(self.image, self.rect)
 
-        elif self.state == "stop":
+        elif self.state == "stop":  # 停止状態
             screen.blit(self.image, self.rect) 
             
-
         elif self.hp_enemy < 0:
             self.kill()
             
@@ -104,13 +102,47 @@ class Attack_effect(pg.sprite.Sprite):
     def update(self):
         """
         攻撃時間を1減算した攻撃経過時間_lifeに応じて
-        爆発エフェクトを表現する
+        攻撃エフェクトを表現する
         """
         self.life -= 1
         if self.life < 0:
             self.kill()
-             
 
+class Boss(pg.sprite.Sprite):
+    """
+    ボスに関するクラス
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/boss.png"), 0, 8.0)
+        
+
+        self.tmr =random.randint(1, 100)
+
+        self.rect = self.image.get_rect()  # ボスのレクト
+        self.rect.center = 200, 400  # ボスの初期位置
+        self.xy = 1 # ボスの移動速度
+        self.state = "normal"  # 状態
+        self.hp_enemy = 1000  # ボスのHP
+        self.attack_enemy = 100  # ボスの攻撃力
+
+    def update(self,screen:pg.Surface):
+        """
+        ボスを右から左へ移動
+        """
+        if self.state == "normal":  # 通常状態
+            self.rect.move_ip(self.xy,0)
+            screen.blit(self.image, self.rect)
+
+        elif self.state == "stop":  # 停止状態
+            screen.blit(self.image, self.rect) 
+            
+        elif self.hp_enemy < 0:
+            self.kill()
+            
+        else:
+            self.state == "normal"
 
 def main():
     pg.display.set_caption("アニマル闘争")
@@ -119,6 +151,7 @@ def main():
 
     emys = pg.sprite.Group()
     attack_e = pg.sprite.Group()
+    boss = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -145,15 +178,32 @@ def main():
                     print(siro.hp)
             else:
                 emy.state ="normal"
-   
-        
+
+        if siro.hp == 500:
+            boss.add(Boss())
+            siro.hp = 490
+
+        for bos in boss:  # bossが城前で止まり攻撃
+            if len(pg.sprite.spritecollide(siro, [bos], False)) != 0:
+                bos.state = "stop"
+                if tmr%500 == 0:
+                    bos.rect.move_ip(-10,0)  # 攻撃モーション
+
+                    attack_e.add(Attack_effect(bos, 4)) # 攻撃エフェクト発生
+                    siro.hp -= emy.attack_enemy  # 城にダメージ
+            else:
+                bos.state = "normal"
+
+
         screen.blit(bg_img, [0, 0])
 
         enemy_siro.update(screen)
         siro.update(screen)
         emys.update(screen)
+        boss.update(screen)
         attack_e.update()
         attack_e.draw(screen)
+
 
         pg.display.update()
 
