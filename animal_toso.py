@@ -168,7 +168,7 @@ class LongTomo(pg.sprite.Sprite):
             screen.blit(self.image, self.rect)
 
 
-    def update(self, screen:pg.Surface):
+    def update(self, screen:pg.Surface, tmr):
         """
         猫を自陣から左に移動させる。
         """
@@ -184,6 +184,11 @@ class LongTomo(pg.sprite.Sprite):
             self.knockhp = 0  # ノックバックの限界に達したらknockhpを0にする。
 
         if self.state == "normal":
+            if 0 <= tmr % 100 <= 50:
+                self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe.png"), 0, 0.2)
+            if 51 <= tmr % 100 <= 100:
+                self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffewalk.png"), 0, 0.2)
+
             self.rect.move_ip(-self.speed, 0)
             screen.blit(self.image, self.rect)
             if check_bound(self.rect) != (True, True):
@@ -262,7 +267,7 @@ def main():
         enemy_siro.update(screen)
         siro.update(screen)
         cats.update(screen)
-        giraffes.update(screen)
+        giraffes.update(screen, tmr)
         shotens.update(screen)
         pg.display.update()
 
