@@ -22,6 +22,7 @@ def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
         tate = False
     return yoko, tate
 
+
 class Siro(pg.sprite.Sprite):
    
 
@@ -43,6 +44,39 @@ class Siro(pg.sprite.Sprite):
         城の描画判定
         """
         screen.blit(self.image, self.rect)
+class Money:
+    """
+    左上のお金を表示させるクラス
+    Qキーを押すとレベルがあがる
+    """
+    def __init__(self,amount,bunbo,level):
+        self.amount = amount
+        self.bunbo = bunbo
+        self.level = level
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color = (255, 220, 0)
+        self.image = self.font.render(f"{self.amount}/{self.bunbo}円", 0, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = 1450, 50
+
+        self.text = self.font.render(f"お金LEVEL：{self.level}",0,self.color)
+        self.rect_text = self.text.get_rect()
+        self.rect_text.center = 200,HEIGHT-50
+
+        
+        
+
+    def increase(self, amount): # お金が増える関数、3000で止まる
+        if self.amount >= self.bunbo:
+            self.amount = self.bunbo
+        else:
+            self.amount += amount
+    
+    def update(self, screen: pg.Surface):
+        self.image = self.font.render(f"{self.amount}/{self.bunbo}円", 0, self.color)
+        screen.blit(self.image, self.rect)
+        self.text = self.font.render(f"お金LEVEL：{self.level}",0,self.color)
+        screen.blit(self.text, self.rect_text)
 
 class Inf(pg.sprite.Sprite):
     def __init__(self, name, zahyo: int, size: float):
@@ -245,6 +279,37 @@ class Cannon(pg.sprite.Sprite): #大砲について
             screen.blit(self.image, self.rect) #ビームの描画
             self.rect.move_ip(-self.speed, 0) #ビームの動き
 
+class Money:
+    """
+    左上のお金を表示させるクラス
+    Qキーを押すとレベルがあがる
+    """
+    def __init__(self,amount,bunbo,level):
+        self.amount = amount
+        self.bunbo = bunbo
+        self.level = level
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color = (255, 220, 0)
+        self.image = self.font.render(f"{self.amount}/{self.bunbo}円", 0, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = 1450, 50
+
+        self.text = self.font.render(f"お金LEVEL：{self.level}",0,self.color)
+        self.rect_text = self.text.get_rect()
+        self.rect_text.center = 200,HEIGHT-50
+
+    def increase(self, amount): # お金が増える関数、3000で止まる
+        if self.amount >= self.bunbo:
+            self.amount = self.bunbo
+        else:
+            self.amount += amount
+    
+    def update(self, screen: pg.Surface):
+        self.image = self.font.render(f"{self.amount}/{self.bunbo}円", 0, self.color)
+        screen.blit(self.image, self.rect)
+        self.text = self.font.render(f"お金LEVEL：{self.level}",0,self.color)
+        screen.blit(self.text, self.rect_text)
+
 
 def main():
     pg.display.set_caption("アニマル闘争")
@@ -254,8 +319,18 @@ def main():
     giraffes = pg.sprite.Group()
     shotens = pg.sprite.Group()
 
+    ###後から修正する部分
+    """
+    white = (255,255,255)
+    ell = pg.Surface((50, 100))
+    pg.draw.ellipse(ell,white,[800,450,50,100])
+    pg.display.flip()"""
+    
+
     tmr = 0
     clock = pg.time.Clock()
+    money = Money(0,1500,1)
+
 
     cannon = Cannon() #キャノンクラスを呼び出す
     font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 32) #フォントをhgp創英角ﾎﾟｯﾌﾟ体でサイズを32にして表示
@@ -264,9 +339,22 @@ def main():
 
     enemy_siro = Siro(0, 200, 0.4)
     siro = Siro(1, 1400, 0.3)
+
     catinf = Inf("catinf", 600, 0.8)
     giraffeinf = Inf("giraffeinf", 900, 0.8)
     while True:
+        if money.color == (255,220,0):
+            p = 0
+            money.increase(1)
+        elif money.color == (255,0,0):
+            p = 800
+            money.level = 2
+            money.increase(2)
+        elif money.color == (0,0,0):
+            money.increase(3)
+            money.level = 3
+            p = 3800
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0
@@ -278,6 +366,19 @@ def main():
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr>=5: #tmrが5以上でスペースキーが押されたとき
                 cannon.fired = True #大砲を発射する
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_q:
+                    if money.amount >= 701 + p:
+                        money.bunbo += 1500
+                        money.amount -= 700
+                        if money.color ==(255,220,0):
+                            money.color =(255,0,0)
+                            money.increase(2)
+                        elif money.color == (255,0,0):
+                            money.color = (0,0,0)
+                            money.increase(3)
+                            money.amount -=800
+            
 
         # 猫に対する捜査の実行
         for cat in cats:
@@ -317,6 +418,7 @@ def main():
         cannon.update(screen) #大砲を更新する
 
         enemy_siro.update(screen)
+
         siro.update(screen)
         giraffeinf.update(screen)
         catinf.update(screen)
@@ -324,6 +426,8 @@ def main():
         cats.update(screen)
         giraffes.update(screen, tmr)
         shotens.update(screen)
+        money.update(screen)
+
         pg.display.update()
 
         tmr += 1
