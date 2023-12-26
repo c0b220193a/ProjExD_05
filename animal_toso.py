@@ -664,10 +664,12 @@ def main():
             if event.type == pg.QUIT:
                 return 0
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_1:
+                if event.key == pg.K_1 and money.amount >= 150:
                     cats.add(Tomo("cat"))  #ねこを追加
-            if event.type == pg.KEYDOWN:
+                    money.amount -= 150
+            if event.type == pg.KEYDOWN and money.amount >= 1200:
                 if event.key == pg.K_2:
+                    money.amount -= 1200
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
                 cannon.fired = True #大砲を発射する
