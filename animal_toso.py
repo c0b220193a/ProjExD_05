@@ -74,10 +74,10 @@ def main():
     ###後から修正する部分
     """
     white = (255,255,255)
-    ell = pg.Surface((100, 100))
+    ell = pg.Surface((50, 100))
     pg.draw.ellipse(ell,white,[800,450,50,100])
-    pg.display.flip()
-    """
+    pg.display.flip()"""
+    
 
     tmr = 0
     clock = pg.time.Clock()
@@ -97,14 +97,15 @@ def main():
             money.increase(2)
         elif money.color == (0,0,0):
             money.increase(3)
-            money.level = 3     
+            money.level = 3
+            p = 3800    
 
         key_lst = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0  
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_2:
+                if event.key == pg.K_q:
                     if money.amount >= 701 + p:
                         money.bunbo += 1500
                         money.amount -= 700
@@ -115,11 +116,7 @@ def main():
                             money.color = (0,0,0)
                             money.increase(3)
                             money.amount -=800
-                        else:
-                            money.color = (0,0,0)
-                            money.bunbo -= 1500
-                            money.increase(3)
-                            money.amount +=700
+                        
 
         screen.blit(bg_img, [0, 0])
 
