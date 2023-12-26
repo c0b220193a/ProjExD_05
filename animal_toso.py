@@ -479,9 +479,9 @@ class Boss(pg.sprite.Sprite):
         self.rect.center = 200, 460  # ボスの初期位置
         self.xy = 1 # ボスの移動速度
         self.state = "normal"  # 状態
-        self.hp_enemy = 1000  # ボスのHP
+        self.hp_enemy = 1500  # ボスのHP
         self.attack_enemy = 200  # ボスの攻撃力
-        self.attacktime = 500
+        self.attacktime = 300
 
     def update(self,screen:pg.Surface):
         """
@@ -669,9 +669,9 @@ def main():
                 if event.key == pg.K_1 and money.amount >= 250:
                     cats.add(Tomo("cat"))  #ねこを追加
                     money.amount -= 250
-            if event.type == pg.KEYDOWN and money.amount >= 1200:
+            if event.type == pg.KEYDOWN and money.amount >= 0:
                 if event.key == pg.K_2:
-                    money.amount -= 1200
+                    money.amount -= 0
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
                 cannon = Cannon()
@@ -709,7 +709,7 @@ def main():
         
         #射程の長いキリンに対する処理
         for giraffe in giraffes:
-            if giraffe.rect.center[0] - enemy_siro.rect.center[0] <= giraffe.range:  # 射程内に敵城がある場合
+            if abs(giraffe.rect.center[0] - enemy_siro.rect.center[0]) <= giraffe.range:  # 射程内に敵城がある場合
                 giraffe.state = "atk"
                 giraffe.motion(enemy_siro, tmr, screen)
             elif giraffe.knockhp <= 999:
@@ -797,7 +797,7 @@ def main():
         for bos in boss:  # bossが城前で止まり攻撃
             if len(pg.sprite.spritecollide(siro, [bos], False)) != 0:
                 bos.state = "stop"
-                if tmr%500 == 0:
+                if tmr%300 == 0:
                     bos.rect.move_ip(-15,0)  # 攻撃モーション
                     attack_e.add(Attack_effect_boss(bos, 7)) # 攻撃エフェクト発生:数字はエフェクトフレーム
                     siro.hp -= bos.attack_enemy  # 城にダメージ
@@ -821,7 +821,7 @@ def main():
             for ene in enemy:
                 if cannon_fire == True:
                     if len(pg.sprite.spritecollide(cannon, [ene], False)) != 0:
-                        ene.hp_enemy -= 11
+                        ene.hp_enemy -= 8
         
         #  敵の昇天エフェクトを追加
         eneint = 0
