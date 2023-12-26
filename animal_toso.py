@@ -436,11 +436,11 @@ class Enemy(pg.sprite.Sprite):
         elif self.state == "stop":  # 停止状態
             screen.blit(self.image, self.rect) 
             
-        elif self.hp_enemy < 0:
-            self.kill()
-            
         else:
             self.state == "normal"
+
+        if self.hp_enemy < 0:
+            self.kill()
 
 class Attack_effect(pg.sprite.Sprite):
     """
@@ -495,12 +495,13 @@ class Boss(pg.sprite.Sprite):
 
         elif self.state == "stop":  # 停止状態
             screen.blit(self.image, self.rect) 
-            
-        elif self.hp_enemy < 0:
-            self.kill()
+        
             
         else:
             self.state == "normal"
+
+        if self.hp_enemy < 0:
+            self.kill()
 
 class Attack_effect_boss(pg.sprite.Sprite):
     """
@@ -575,11 +576,11 @@ class Dragon(pg.sprite.Sprite):
         elif self.state == "stop":  # 停止状態
             screen.blit(self.image, self.rect) 
             
-        elif self.hp_enemy < 0:
-            self.kill()
-            
         else:
             self.state == "normal"
+
+        if self.hp_enemy < 0:
+            self.kill()
 
 class Attack_effect_dragon(pg.sprite.Sprite):
     """
@@ -632,8 +633,6 @@ def main():
     clock = pg.time.Clock()
     money = Money(0,1500,1)
 
-
-    cannon = Cannon() #キャノンクラスを呼び出す
     font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 32) #フォントをhgp創英角ﾎﾟｯﾌﾟ体でサイズを32にして表示
     text = font.render('大砲完了', True, (0, 0, 0)) #文字色(0,0,0)で大砲完了と表示させる
 
@@ -643,6 +642,7 @@ def main():
     siro = Siro(1, 1400, 0.3,(255,255,255))
     kanban = Kanban(1290)
     bossnum = False
+    cannon_fire = False
 
 
     while True:
@@ -672,7 +672,10 @@ def main():
                     money.amount -= 1200
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
+                cannon = Cannon()
                 cannon.fired = True #大砲を発射する
+                cannon_fire = True
+
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_q:
                     if money.amount >= 701 + p:
@@ -764,7 +767,7 @@ def main():
                 elif tmr5 < 210: # 終了
                     return
 
-        if tmr >= 1500 and not cannon.fired: #tmrが5以上で大砲が発射されていない時
+        if tmr >= 1500 and not cannon_fire == True: #tmrが5以上で大砲が発射されていない時
             screen.blit(text, (1340, 700)) #文字を（1340, 700）のところに表示する
 
         
@@ -779,7 +782,6 @@ def main():
                     emy.rect.move_ip(-10,0)  # 攻撃モーション
                     attack_e.add(Attack_effect(emy, 3)) # 攻撃エフェクト発生:数字はエフェクトフレーム
                     siro.hp -= emy.attack_enemy  # 城にダメージ
-                    print(siro.hp)
             else:
                 emy.state ="normal"
 
@@ -807,13 +809,22 @@ def main():
                     dra.rect.move_ip(-10,0)  # 攻撃モーション
                     attack_e.add(Attack_effect_dragon(dra, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
                     siro.hp -= dra.attack_enemy  # 城にダメージ
-                    print(siro.hp)
             else:
                 dra.state ="normal"
 
+        for enemy in [emys, dragon, boss]:
+            for ene in enemy:
+                if cannon_fire == True:
+                    if len(pg.sprite.spritecollide(cannon, [ene], False)) != 0:
+                        ene.hp_enemy -= 7
+        
+        for enemy in [emys, dragon, boss]:
+            for ene in enemy:
+                if ene.hp_enemy <= 0:
+                    shotens.add(Shoten(ene.rect.center))
 
-            
-        cannon.update(screen) #大砲を更新する
+        if cannon_fire == True:
+            cannon.update(screen) #大砲を更新する
 
         giraffeinf.update(screen)
         catinf.update(screen)
