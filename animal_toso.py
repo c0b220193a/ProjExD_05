@@ -152,7 +152,7 @@ class Tomo(pg.sprite.Sprite):
         self.rect.center = 1400, 627-self.zahyo
         self.speed = 2
         self.state = "normal"  #猫の状態を定義
-        self.hp = 90
+        self.hp = 60
         self.attack = 20
 
     def motion(self, enemy, tmr):
@@ -205,8 +205,8 @@ class LongTomo(pg.sprite.Sprite):
         self.rect = self.image.get_rect()  #れくとを生成
         self.rect.center = 1400, 580-self.zahyo
         self.speed = 1.8
-        self.attack = 50  #キリンの攻撃力を定義
-        self.hp = 250  #キリンのhpを定義
+        self.attack = 30  #キリンの攻撃力を定義
+        self.hp = 210  #キリンのhpを定義
         self.state = "normal"  #キリンの状態を定義
         
         # ノックバックに関する変数
@@ -641,7 +641,7 @@ def main():
     catinf = Inf("catinf", 600, 0.8)
     giraffeinf = Inf("giraffeinf", 900, 0.8)
     enemy_siro = Siro(0, 200, 0.4,(0,0,0), 4000)
-    siro = Siro(1, 1400, 0.3,(255,255,255), 2000)
+    siro = Siro(1, 1400, 0.3,(255,255,255), 1500)
     kanban = Kanban(1290)
     bossnum = False
     cannon_fire = False
@@ -666,12 +666,12 @@ def main():
             if event.type == pg.QUIT:
                 return 0
             if event.type == pg.KEYDOWN:
-                if event.key == pg.K_1 and money.amount >= 150:
+                if event.key == pg.K_1 and money.amount >= 250:
                     cats.add(Tomo("cat"))  #ねこを追加
-                    money.amount -= 150
-            if event.type == pg.KEYDOWN and money.amount >= 800:
+                    money.amount -= 250
+            if event.type == pg.KEYDOWN and money.amount >= 1200:
                 if event.key == pg.K_2:
-                    money.amount -= 800
+                    money.amount -= 1200
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
                 cannon = Cannon()
@@ -800,7 +800,7 @@ def main():
                 if tmr%500 == 0:
                     bos.rect.move_ip(-15,0)  # 攻撃モーション
                     attack_e.add(Attack_effect_boss(bos, 7)) # 攻撃エフェクト発生:数字はエフェクトフレーム
-                    siro.hp -= emy.attack_enemy  # 城にダメージ
+                    siro.hp -= bos.attack_enemy  # 城にダメージ
             else:
                 bos.state = "normal"
 
@@ -821,7 +821,7 @@ def main():
             for ene in enemy:
                 if cannon_fire == True:
                     if len(pg.sprite.spritecollide(cannon, [ene], False)) != 0:
-                        ene.hp_enemy -= 7
+                        ene.hp_enemy -= 11
         
         #  敵の昇天エフェクトを追加
         eneint = 0
