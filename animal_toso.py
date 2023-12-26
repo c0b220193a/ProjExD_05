@@ -151,7 +151,7 @@ class Tomo(pg.sprite.Sprite):
         self.rect.center = 1400, 627-self.zahyo
         self.speed = 2
         self.state = "normal"  #猫の状態を定義
-        self.hp = 500
+        self.hp = 90
         self.attack = 20
 
     def motion(self, enemy, tmr):
@@ -423,7 +423,8 @@ class Enemy(pg.sprite.Sprite):
         self.xy = self.speed  # 敵キャラの移動速度
         self.state = "normal"  # 状態
         self.hp_enemy = 100  # 敵のHP
-        self.attack_enemy = 20  # 敵の攻撃力
+        self.attack_enemy = 25  # 敵の攻撃力
+        self.attacktime = 100
 
     def update(self,screen:pg.Surface):
         """
@@ -484,6 +485,7 @@ class Boss(pg.sprite.Sprite):
         self.state = "normal"  # 状態
         self.hp_enemy = 1000  # ボスのHP
         self.attack_enemy = 200  # ボスの攻撃力
+        self.attacktime = 500
 
     def update(self,screen:pg.Surface):
         """
@@ -564,6 +566,7 @@ class Dragon(pg.sprite.Sprite):
         self.state = "normal"  # 状態
         self.hp_enemy = 300  # 敵のHP
         self.attack_enemy = 40  # 敵の攻撃力
+        self.attacktime = 200
 
     def update(self,screen:pg.Surface):
         """
@@ -692,6 +695,7 @@ def main():
 
         # 猫に対する捜査の実行
         for cat in cats:
+            cat.state = "normal"
             # 猫が敵の城と当たったときの操作
             if len(pg.sprite.spritecollide(enemy_siro, [cat], False)) != 0:  # ねこと敵城がぶつかったときに止まり攻撃
                 cat.state = "atk"
@@ -818,10 +822,41 @@ def main():
                     if len(pg.sprite.spritecollide(cannon, [ene], False)) != 0:
                         ene.hp_enemy -= 7
         
+        #  敵の昇天エフェクトを追加
+        eneint = 0
         for enemy in [emys, dragon, boss]:
+            eneint += 1
             for ene in enemy:
                 if ene.hp_enemy <= 0:
                     shotens.add(Shoten(ene.rect.center))
+                    ene.kill()
+                    money.amount += 50
+                #ネコと敵の衝突判定を追加
+                for cat in pg.sprite.groupcollide(cats, [ene], False, False).keys():
+                    ene.state = "stop"
+                    if tmr%ene.attacktime == ene.tmr:
+                        if eneint == 1:
+                            attack_e.add(Attack_effect(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                        elif eneint == 2:
+                            attack_e.add(Attack_effect_dragon(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                        else:
+                            attack_e.add(Attack_effect_boss(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                        cat.hp -= ene.attack_enemy  # 敵に攻撃
+
+
+                    cat.state = "atk"
+                    if tmr%100 == cat.tmr:
+                        ene.hp_enemy -= cat.attack
+                        cat.rect.move_ip(8, 0)
+                    if cat.knockhp <= 999:
+                        cat.state = "atk"
+        for cat in cats:
+            if 10 <= cat.knockhp <= 100:
+                cat.state = "death"
+                shotens.add(Shoten(cat.rect.center))
+
+        
+
 
         if cannon_fire == True:
             cannon.update(screen) #大砲を更新する
