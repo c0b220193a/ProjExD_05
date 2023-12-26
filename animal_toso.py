@@ -205,8 +205,8 @@ class LongTomo(pg.sprite.Sprite):
         self.rect = self.image.get_rect()  #れくとを生成
         self.rect.center = 1400, 580-self.zahyo
         self.speed = 1.8
-        self.attack = 80  #キリンの攻撃力を定義
-        self.hp = 800  #キリンのhpを定義
+        self.attack = 50  #キリンの攻撃力を定義
+        self.hp = 250  #キリンのhpを定義
         self.state = "normal"  #キリンの状態を定義
         
         # ノックバックに関する変数
@@ -627,7 +627,10 @@ def main():
     dragon = pg.sprite.Group()
 
     tmr = 0
-    tmr5 = 450
+    tmr5 = 250
+    tmr6 = 1000
+    bosscome = False
+    knockB = 2
     gamemode = 0 # 初期状態
     clock = pg.time.Clock()
     money = Money(0,1500,1)
@@ -637,7 +640,7 @@ def main():
 
     catinf = Inf("catinf", 600, 0.8)
     giraffeinf = Inf("giraffeinf", 900, 0.8)
-    enemy_siro = Siro(0, 200, 0.4,(0,0,0), 5000)
+    enemy_siro = Siro(0, 200, 0.4,(0,0,0), 4000)
     siro = Siro(1, 1400, 0.3,(255,255,255), 2000)
     kanban = Kanban(1290)
     bossnum = False
@@ -666,9 +669,9 @@ def main():
                 if event.key == pg.K_1 and money.amount >= 150:
                     cats.add(Tomo("cat"))  #ねこを追加
                     money.amount -= 150
-            if event.type == pg.KEYDOWN and money.amount >= 1200:
+            if event.type == pg.KEYDOWN and money.amount >= 800:
                 if event.key == pg.K_2:
-                    money.amount -= 1200
+                    money.amount -= 800
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
                 cannon = Cannon()
@@ -785,9 +788,11 @@ def main():
             else:
                 emy.state ="normal"
 
-        if enemy_siro.hp <= 2000 and bossnum is not True:
+        if enemy_siro.hp <= 1500 and bossnum is not True:
             boss.add(Boss())
             bossnum = True
+            bosscome = True
+
 
         for bos in boss:  # bossが城前で止まり攻撃
             if len(pg.sprite.spritecollide(siro, [bos], False)) != 0:
@@ -838,19 +843,67 @@ def main():
                         else:
                             attack_e.add(Attack_effect_boss(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
                         cat.hp -= ene.attack_enemy  # 敵に攻撃
-
-
                     cat.state = "atk"
                     if tmr%100 == cat.tmr:
                         ene.hp_enemy -= cat.attack
                         cat.rect.move_ip(8, 0)
                     if cat.knockhp <= 999:
                         cat.state = "atk"
+
+                #キリンと敵の衝突判定を追加
+                for giraffe in pg.sprite.groupcollide(giraffes, [ene], False, False).keys():
+                    ene.state = "stop"
+                    if tmr%ene.attacktime == ene.tmr:
+                        if eneint == 1:
+                            attack_e.add(Attack_effect(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                        elif eneint == 2:
+                            attack_e.add(Attack_effect_dragon(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                        else:
+                            attack_e.add(Attack_effect_boss(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                        giraffe.hp -= ene.attack_enemy  # 敵に攻撃
+
         for cat in cats:
             if 10 <= cat.knockhp <= 100:
                 cat.state = "death"
                 shotens.add(Shoten(cat.rect.center))
 
+        for enemy in [emys, dragon, boss]:
+            #射程の長いキリンに対する処理
+            for ene in enemy:
+                for giraffe in giraffes:
+                    if giraffe.rect.center[0] - ene.rect.center[0] <= giraffe.range:  # 射程内に敵城がある場合
+                        giraffe.state = "atk"
+                        """
+                        攻撃モーションを起動する処理
+                        """
+                        if tmr%200 == giraffe.tmr:
+                            ene.hp_enemy -= giraffe.attack
+                        if giraffe.tmr-7 <= tmr%200 <= giraffe.tmr+7:
+                            giraffe.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe2.png"), 0, 0.2)
+                            screen.blit(giraffe.image, giraffe.rect)
+                        else:
+                            giraffe.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe.png"), 0, 0.2)
+                            screen.blit(giraffe.image, giraffe.rect)
+                    elif giraffe.knockhp <= 999:
+                        giraffe.state = "atk"
+                    else:
+                        giraffe.state = "normal"
+                    if 10 <= giraffe.knockhp <= 100:
+                        giraffe.state = "death"
+                        shotens.add(Shoten(giraffe.rect.center))
+
+        if bosscome == True and knockB == 2:
+            tmr6 = 0
+            knockB = 1
+        if knockB == 1:
+            if 0 <= tmr6 <= 40:
+                for cat in cats:
+                    cat.rect.move_ip(6, 0)
+                for giraffe in giraffes:
+                    giraffe.rect.move_ip(6, 0)
+            else:
+                bosscome = False
+                knockB = 3
         
 
 
@@ -876,6 +929,7 @@ def main():
 
         tmr += 1
         tmr5 += 1
+        tmr6 += 1
         clock.tick(50)
 
             
