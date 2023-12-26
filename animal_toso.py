@@ -22,28 +22,32 @@ def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
         tate = False
     return yoko, tate
 
-
 class Siro(pg.sprite.Sprite):
-   
-
-    def __init__(self, num: int, zahyo: int, size: float):
+    def __init__(self, num: int, zahyo: int, size: float, iro):
         """
         城を置く
         """
         super().__init__()
         img0 = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/siro{num}.png"), 0, size)
         self.img = pg.transform.flip(img0, True, False)  # デフォルトの城
-
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
         self.image = self.img
         self.rect = self.image.get_rect()
         self.rect.center = zahyo, 550
         self.hp = 5000
+        # 城のHP表示に関わる
+        self.change_HP = self.font.render(f"{self.hp}/5000", 0, iro)
+        self.rect_HP = self.change_HP.get_rect()
+        self.rect_HP.center = zahyo, 420
+
 
     def update(self, screen: pg.Surface):
         """
         城の描画判定
         """
         screen.blit(self.image, self.rect)
+        screen.blit(self.change_HP,self.rect_HP)
+
 class Money:
     """
     左上のお金を表示させるクラス
@@ -337,11 +341,12 @@ def main():
     text = font.render('大砲完了', True, (0, 0, 0)) #文字色(0,0,0)で大砲完了と表示させる
 
 
-    enemy_siro = Siro(0, 200, 0.4)
-    siro = Siro(1, 1400, 0.3)
+   
 
     catinf = Inf("catinf", 600, 0.8)
     giraffeinf = Inf("giraffeinf", 900, 0.8)
+    enemy_siro = Siro(0, 200, 0.4,(0,0,0))
+    siro = Siro(1, 1400, 0.3,(255,255,255))
     while True:
         if money.color == (255,220,0):
             p = 0
