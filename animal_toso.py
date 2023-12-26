@@ -38,15 +38,15 @@ class Cannon(pg.sprite.Sprite): #大砲について
     def __init__(self):
         super().__init__()
         self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/beam.png"), 0, 3.0) #ビームの画像を倍率3倍で挿入している
-        self.image = pg.transform.flip(self.image, True, False) #ビームを左右反転させている
+        self.image = pg.transform.flip(self.image, True, False) #ビームを左右反転させる
         self.rect = self.image.get_rect()
         self.rect.center = (1350, 550) #ビームの座標
         self.speed = 10 #ビームのスピード
-        self.fired = False
+        self.fired = False #大砲が発射されていない
         
     def update(self, screen):
         """"
-        ビームの表示
+        ビームの表示するための処理
         """
         if self.fired: #大砲が発射されたとき
             screen.blit(self.image, self.rect) #ビームの描画
@@ -61,9 +61,9 @@ def main():
     tmr = 0
     clock = pg.time.Clock()
 
-    cannon = Cannon()
-    font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 32) #フォントのサイズを32にする
-    text = font.render('大砲完了', True, (0, 0, 0)) #大砲完了と表示させる
+    cannon = Cannon() #キャノンクラスを呼び出す
+    font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 32) #フォントをhgp創英角ﾎﾟｯﾌﾟ体でサイズを32にして表示
+    text = font.render('大砲完了', True, (0, 0, 0)) #文字色(0,0,0)で大砲完了と表示させる
 
 
     enemy_siro = Siro(0, 200, 0.4)
@@ -73,13 +73,13 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0         
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr>=5: #タイマーが5以上でスペースキーが押されたとき
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr>=5: #tmrが5以上でスペースキーが押されたとき
                 cannon.fired = True #大砲を発射する
                 
         
         screen.blit(bg_img, [0, 0])
 
-        if tmr >=5 and not cannon.fired: #タイマーが5以上で大砲が発射されていない時
+        if tmr >=5 and not cannon.fired: #tmrが5以上で大砲が発射されていない時
             screen.blit(text, (1340, 700)) #文字を（1340, 700）のところに表示する
             
         cannon.update(screen) #大砲を更新する
