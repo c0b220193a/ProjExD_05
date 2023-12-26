@@ -125,7 +125,7 @@ class Boss(pg.sprite.Sprite):
         self.xy = 1 # ボスの移動速度
         self.state = "normal"  # 状態
         self.hp_enemy = 1000  # ボスのHP
-        self.attack_enemy = 100  # ボスの攻撃力
+        self.attack_enemy = 200  # ボスの攻撃力
 
     def update(self,screen:pg.Surface):
         """
@@ -158,6 +158,7 @@ class Attack_effect_boss(pg.sprite.Sprite):
         super().__init__()
         self.image = pg.image.load(f"{MAIN_DIR}/fig/attack_effect2.png")
         self.rect = self.image.get_rect(center=(obj.rect.centerx+250, obj.rect.centery))
+
         self.life = life
 
     def update(self):
@@ -270,6 +271,7 @@ def main():
 
     while True:
         frame_enemy = random.randint(300, 500)  # 敵出現頻度ランダム
+        frame_dragon = random.randint(600, 800)
         key_lst = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
@@ -303,15 +305,15 @@ def main():
             else:
                 bos.state = "normal"
 
-        if tmr%1000 == 999:
+        if tmr%1200 == frame_dragon:
             dragon.add(Dragon())
 
-        for dra in dragon:  # 敵が城前で止まり攻撃
+        for dra in dragon:  # ドラゴンが城前で止まり攻撃
             if len(pg.sprite.spritecollide(siro, [dra], False)) != 0:
                 dra.state = "stop"
-                if tmr%100 == dra.tmr:
+                if tmr%200 == dra.tmr:
                     dra.rect.move_ip(-10,0)  # 攻撃モーション
-                    attack_e.add(Attack_effect_dragon(dra, 4)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                    attack_e.add(Attack_effect_dragon(dra, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
                     siro.hp -= dra.attack_enemy  # 城にダメージ
                     print(siro.hp)
             else:
@@ -324,8 +326,8 @@ def main():
         siro.update(screen)
         kanban.update(screen)
         boss.update(screen)
-        emys.update(screen)
         dragon.update(screen)
+        emys.update(screen)
         attack_e.update()
         attack_e.draw(screen)
 
