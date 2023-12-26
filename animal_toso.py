@@ -669,9 +669,9 @@ def main():
                 if event.key == pg.K_1 and money.amount >= 250:
                     cats.add(Tomo("cat"))  #ねこを追加
                     money.amount -= 250
-            if event.type == pg.KEYDOWN and money.amount >= 0:
+            if event.type == pg.KEYDOWN and money.amount >= 1200:
                 if event.key == pg.K_2:
-                    money.amount -= 0
+                    money.amount -= 1200
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
                 cannon = Cannon()
@@ -709,7 +709,7 @@ def main():
         
         #射程の長いキリンに対する処理
         for giraffe in giraffes:
-            if abs(giraffe.rect.center[0] - enemy_siro.rect.center[0]) <= giraffe.range:  # 射程内に敵城がある場合
+            if giraffe.rect.center[0] - enemy_siro.rect.center[0] <= giraffe.range:  # 射程内に敵城がある場合
                 giraffe.state = "atk"
                 giraffe.motion(enemy_siro, tmr, screen)
             elif giraffe.knockhp <= 999:
