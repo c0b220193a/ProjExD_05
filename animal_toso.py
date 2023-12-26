@@ -39,15 +39,19 @@ class Siro(pg.sprite.Sprite):
         self.rect.center = zahyo, 550
         self.hp = 5000
         # 城のHP表示に関わる
-        self.change_HP = self.font.render(f"{self.hp}/5000", 0, iro)
-        self.rect_HP = self.change_HP.get_rect()
-        self.rect_HP.center = zahyo, 420
+        self.iro = iro
+        self.zahyo = zahyo
 
 
     def update(self, screen: pg.Surface):
         """
         城の描画判定
         """
+        if self.hp <= 0:
+            self.hp = 0
+        self.change_HP = self.font.render(f"{self.hp}/5000", 0, self.iro)
+        self.rect_HP = self.change_HP.get_rect()
+        self.rect_HP.center = self.zahyo, 420
         screen.blit(self.image, self.rect)
         screen.blit(self.change_HP,self.rect_HP)
 
@@ -125,8 +129,6 @@ class Shoten(pg.sprite.Sprite):
         if check_bound(self.rect) != (True, True):
             self.kill()
     
-
-
 class Tomo(pg.sprite.Sprite):
     """
     味方に関するクラス
@@ -189,7 +191,6 @@ class Tomo(pg.sprite.Sprite):
         キャラクターを後退させる（ノックバックする）。
         """
         self.rect.move_ip(self.knockback_distance, 0)
-
 
 class LongTomo(pg.sprite.Sprite):
     def __init__(self, name):
@@ -267,7 +268,6 @@ class LongTomo(pg.sprite.Sprite):
         """
         self.rect.move_ip(self.knockback_distance, 0)
 
-
 class Cannon(pg.sprite.Sprite): #大砲について
     def __init__(self):
         super().__init__()
@@ -317,8 +317,6 @@ class Money:
         self.text = self.font.render(f"お金LEVEL：{self.level}",0,self.color)
         screen.blit(self.text, self.rect_text)
 
-
-
 class Explosion(pg.sprite.Sprite):
     """
     爆発エフェクトに関するクラス
@@ -352,7 +350,6 @@ class Explosion(pg.sprite.Sprite):
         elif num == 3:
             screen.blit(self.bakuhatu3_img, self.rect3) # 大爆発を貼り付け
 
-
 class Collapse(pg.sprite.Sprite):
     """
     城崩壊に関するクラス
@@ -381,7 +378,6 @@ class Collapse(pg.sprite.Sprite):
         elif num == 2:
             screen.blit(self.siro_houkai2_img, self.rect2) # 敵の城の崩壊後の画像
 
-
 class Game(pg.sprite.Sprite):
     """
     ゲームクリア・ゲームオーバー判定に関するクラス
@@ -408,8 +404,6 @@ class Game(pg.sprite.Sprite):
             screen.blit(self.gameclear_img, self.rect1) # gameclearの画像を貼り付ける
         elif num == 2: # 引数が2の場合
             screen.blit(self.gameover_img, self.rect2) # gameoverの画像を貼り付ける
-
-
 
 class Enemy(pg.sprite.Sprite):
     """
@@ -508,7 +502,6 @@ class Boss(pg.sprite.Sprite):
         else:
             self.state == "normal"
 
-
 class Attack_effect_boss(pg.sprite.Sprite):
     """
     ボス攻撃エフェクトに関するクラス
@@ -534,7 +527,6 @@ class Attack_effect_boss(pg.sprite.Sprite):
         if self.life < 0:
             self.kill()
 
-
 class Kanban(pg.sprite.Sprite):
     def __init__(self, x:int):
         """
@@ -552,7 +544,6 @@ class Kanban(pg.sprite.Sprite):
         看板の描画判定
         """
         screen.blit(self.image, self.rect)
-
 
 class Dragon(pg.sprite.Sprite):
     """
@@ -589,7 +580,6 @@ class Dragon(pg.sprite.Sprite):
             
         else:
             self.state == "normal"
-
 
 class Attack_effect_dragon(pg.sprite.Sprite):
     """
@@ -679,7 +669,7 @@ def main():
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_2:
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr>=5: #tmrが5以上でスペースキーが押されたとき
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
                 cannon.fired = True #大砲を発射する
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_q:
@@ -772,7 +762,7 @@ def main():
                 elif tmr5 < 210: # 終了
                     return
 
-        if tmr >=5 and not cannon.fired: #tmrが5以上で大砲が発射されていない時
+        if tmr >= 1500 and not cannon.fired: #tmrが5以上で大砲が発射されていない時
             screen.blit(text, (1340, 700)) #文字を（1340, 700）のところに表示する
 
         
