@@ -95,7 +95,7 @@ class Tomo(pg.sprite.Sprite):
 
         # ノックバックに関する変数
         self.hp_thresholds = 0  #ノックバックする体力
-        self.knockback_distance = 20  #ノックバックする距離
+        self.knockback_distance = 40  #ノックバックする距離
         self.knockback_count = 0  #ノックバックの回数
         self.knockback_limit = 1  #ノックバックの限界
         self.knockhp = 1000
@@ -122,7 +122,7 @@ class Tomo(pg.sprite.Sprite):
         猫を自陣から左に移動させる。
         状態を更新する。体力が一定以下になったときにノックバックする。
         """
-        if self.hp <= self.hp_thresholds:
+        if self.hp <= self.hp_thresholds and self.knockback_count == 0:
             self.knockback()
             self.knockback_count += 1
 
@@ -268,7 +268,6 @@ def main():
         #射程の長いキリンに対する処理
         for giraffe in giraffes:
             if giraffe.rect.center[0] - enemy_siro.rect.center[0] <= giraffe.range:  # 射程内に敵城がある場合
-                giraffe.hp -= 1
                 giraffe.state = "atk"
                 giraffe.motion(enemy_siro, tmr, screen)
             elif giraffe.knockhp <= 999:
