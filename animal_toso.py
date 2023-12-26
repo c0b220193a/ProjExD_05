@@ -26,7 +26,7 @@ def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
     return yoko, tate
 
 class Siro(pg.sprite.Sprite):
-    def __init__(self, num: int, zahyo: int, size: float, iro):
+    def __init__(self, num: int, zahyo: int, size: float, iro, hp):
         """
         城を置く
         """
@@ -37,7 +37,8 @@ class Siro(pg.sprite.Sprite):
         self.image = self.img
         self.rect = self.image.get_rect()
         self.rect.center = zahyo, 550
-        self.hp = 5000
+        self.hp = hp
+        self.hps = hp
         # 城のHP表示に関わる
         self.iro = iro
         self.zahyo = zahyo
@@ -49,7 +50,7 @@ class Siro(pg.sprite.Sprite):
         """
         if self.hp <= 0:
             self.hp = 0
-        self.change_HP = self.font.render(f"{self.hp}/5000", 0, self.iro)
+        self.change_HP = self.font.render(f"{self.hp}/{self.hps}", 0, self.iro)
         self.rect_HP = self.change_HP.get_rect()
         self.rect_HP.center = self.zahyo, 420
         screen.blit(self.image, self.rect)
@@ -246,11 +247,6 @@ class LongTomo(pg.sprite.Sprite):
             self.knockhp = 0  # ノックバックの限界に達したらknockhpを0にする。
 
         if self.state == "normal":
-            if 0 <= tmr % 100 <= 50:
-                self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe.png"), 0, 0.2)
-            if 51 <= tmr % 100 <= 100:
-                self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffewalk.png"), 0, 0.2)
-
             self.rect.move_ip(-self.speed, 0)
             screen.blit(self.image, self.rect)
             if check_bound(self.rect) != (True, True):
@@ -641,8 +637,8 @@ def main():
 
     catinf = Inf("catinf", 600, 0.8)
     giraffeinf = Inf("giraffeinf", 900, 0.8)
-    enemy_siro = Siro(0, 200, 0.4,(0,0,0))
-    siro = Siro(1, 1400, 0.3,(255,255,255))
+    enemy_siro = Siro(0, 200, 0.4,(0,0,0), 5000)
+    siro = Siro(1, 1400, 0.3,(255,255,255), 2000)
     kanban = Kanban(1290)
     bossnum = False
     cannon_fire = False
@@ -864,11 +860,11 @@ def main():
         giraffeinf.update(screen)
         catinf.update(screen)
 
+        kanban.update(screen)
         cats.update(screen)
         giraffes.update(screen, tmr)
         shotens.update(screen)
         money.update(screen)      
-        kanban.update(screen)
         boss.update(screen)
         dragon.update(screen)
         emys.update(screen)
