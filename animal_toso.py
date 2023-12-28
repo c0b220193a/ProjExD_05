@@ -225,7 +225,7 @@ class LongTomo(pg.sprite.Sprite):
         self.rect = self.image.get_rect()  #れくとを生成
         self.rect.center = 1400, 580-self.zahyo
         self.speed = 1.8
-        self.attack = 30  #キリンの攻撃力を定義
+        self.attack = 35  #キリンの攻撃力を定義
         self.hp = 230  #キリンのhpを定義
         self.state = "normal"  #キリンの状態を定義
         self.atmo = False  #キリンが敵城の射程内にいるかどうかの変数
@@ -517,9 +517,6 @@ class Boss(pg.sprite.Sprite):
         else:
             self.state == "normal"
 
-        if self.hp_enemy < 0:
-            self.kill()
-
 class Attack_effect_boss(pg.sprite.Sprite):
     """
     ボス攻撃エフェクトに関するクラス
@@ -597,8 +594,6 @@ class Dragon(pg.sprite.Sprite):
         else:
             self.state == "normal"
 
-        if self.hp_enemy < 0:
-            self.kill()
 
 class Attack_effect_dragon(pg.sprite.Sprite):
     """
@@ -692,7 +687,7 @@ def main():
                 if event.key == pg.K_2:
                     money.amount -= 1200
                     giraffes.add(LongTomo("giraffe"))  #キリンを追加
-            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500: #tmrが5以上でスペースキーが押されたとき
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE and tmr >= 1500 and cannon_fire is not True: #tmrが5以上でスペースキーが押されたとき
                 cannon = Cannon()
                 cannon.fired = True #大砲を発射する
                 cannon_fire = True
@@ -852,7 +847,7 @@ def main():
                 if ene.hp_enemy <= 0:
                     shotens.add(Shoten(ene.rect.center))
                     ene.kill()
-                    money.amount += 50
+                    money.amount += 70
                 #ネコと敵の衝突判定を追加
                 for cat in pg.sprite.groupcollide(cats, [ene], False, False).keys():
                     ene.state = "stop"
