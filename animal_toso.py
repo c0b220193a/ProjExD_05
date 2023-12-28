@@ -5,12 +5,32 @@ import sys
 import time
 from typing import Any
 import pygame as pg
+import pygame
 from pygame.sprite import AbstractGroup
 
 
 WIDTH = 1600  # ゲームウィンドウの幅
 HEIGHT = 900  # ゲームウィンドウの高さ
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
+
+# Pygameと表示を初期化
+pygame.init()
+screen = pygame.display.set_mode((800, 600))  # ここで適切な画面サイズを設定します
+
+# 画像をすべて読みこんでおく
+# 画像が保存されているディレクトリのパス
+path = f'{MAIN_DIR}/fig/'
+
+# ディレクトリ内のすべての.pngファイルの名前をリストアップ
+filenames = [f for f in os.listdir(path) if f.endswith('.png') or f.endswith('.jpg')]
+
+# 画像を格納する辞書を作成
+images = {}
+
+# 各画像ファイルを読み込み、辞書に追加
+for name in filenames:
+    imagename = os.path.splitext(name)[0]  # 拡張子を除いたファイル名
+    images[imagename] = pygame.image.load(os.path.join(path, name)).convert_alpha()
 
 def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
     """
@@ -31,7 +51,7 @@ class Siro(pg.sprite.Sprite):
         城を置く
         """
         super().__init__()
-        img0 = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/siro{num}.png"), 0, size)
+        img0 = pg.transform.rotozoom(images[f"siro{num}"], 0, size)
         self.img = pg.transform.flip(img0, True, False)  # デフォルトの城
         self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 20)
         self.image = self.img
@@ -96,7 +116,7 @@ class Inf(pg.sprite.Sprite):
         猫とキリンの情報の画像を出力
         """
         super().__init__()
-        img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/{name}.png"), 0, size)
+        img = pg.transform.rotozoom(images[f"{name}"], 0, size)
 
         self.image = img
         self.rect = self.image.get_rect()
@@ -115,7 +135,7 @@ class Shoten(pg.sprite.Sprite):
     """
     def __init__(self, zahyo):
         super().__init__()
-        img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/shoten.png"), 0, 2.5)
+        img = pg.transform.rotozoom(images['shoten'], 0, 2.5)
         self.image = img  #昇天の画像を作成
         self.rect = self.image.get_rect()  #れくとを生成
         self.rect.center = zahyo
@@ -146,7 +166,7 @@ class Tomo(pg.sprite.Sprite):
         self.knockback_limit = 1  #ノックバックの限界
         self.knockhp = 1000
 
-        img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/{name}.png"), 0, 0.5)
+        img = pg.transform.rotozoom(images[f"{name}"], 0, 0.5)
         self.image = img  #猫の画像を読み込む
         self.rect = self.image.get_rect()  #れくとを生成
         self.rect.center = 1400, 627-self.zahyo
@@ -200,18 +220,19 @@ class LongTomo(pg.sprite.Sprite):
         self.range = 280  # 攻撃の射程を定義
         self.zahyo = random.randint(1, 15)
 
-        img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/{name}.png"), 0, 0.2)
+        img = pg.transform.rotozoom(images[f"{name}"], 0, 0.2)
         self.image = img  #キリンの画像を読み込む
         self.rect = self.image.get_rect()  #れくとを生成
         self.rect.center = 1400, 580-self.zahyo
         self.speed = 1.8
         self.attack = 30  #キリンの攻撃力を定義
-        self.hp = 210  #キリンのhpを定義
+        self.hp = 230  #キリンのhpを定義
         self.state = "normal"  #キリンの状態を定義
+        self.atmo = False  #キリンが敵城の射程内にいるかどうかの変数
         
         # ノックバックに関する変数
         self.hp_thresholds = [0, self.hp/2]  #ノックバックする体力
-        self.knockback_distance = 60  #ノックバックする距離
+        self.knockback_distance = 110  #ノックバックする距離
         self.knockback_count = 0  #ノックバックの回数
         self.knockback_limit = 2  #ノックバックの限界
         self.knockhp = 1000
@@ -224,10 +245,10 @@ class LongTomo(pg.sprite.Sprite):
         if tmr%200 == self.tmr:
             enemy.hp -= self.attack
         if self.tmr-7 <= tmr%200 <= self.tmr+7:
-            self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe2.png"), 0, 0.2)
+            self.image = pg.transform.rotozoom(images["giraffe2"], 0, 0.2)
             screen.blit(self.image, self.rect)
         else:
-            self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe.png"), 0, 0.2)
+            self.image = pg.transform.rotozoom(images[f"giraffe"], 0, 0.2)
             screen.blit(self.image, self.rect)
 
 
@@ -249,8 +270,6 @@ class LongTomo(pg.sprite.Sprite):
         if self.state == "normal":
             self.rect.move_ip(-self.speed, 0)
             screen.blit(self.image, self.rect)
-            if check_bound(self.rect) != (True, True):
-                self.kill()
         elif self.state == "atk":
             screen.blit(self.image, self.rect)
         elif self.state == "death":
@@ -267,7 +286,7 @@ class LongTomo(pg.sprite.Sprite):
 class Cannon(pg.sprite.Sprite): #大砲について
     def __init__(self):
         super().__init__()
-        self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/beam.png"), 0, 3.0) #ビームの画像を倍率3倍で挿入している
+        self.image = pg.transform.rotozoom(images[f"beam"], 0, 3.0) #ビームの画像を倍率3倍で挿入している
         self.image = pg.transform.flip(self.image, True, False) #ビームを左右反転させる
         self.rect = self.image.get_rect()
         self.rect.center = (1350, 550) #ビームの座標
@@ -323,9 +342,9 @@ class Explosion(pg.sprite.Sprite):
         引数1 zahyo:hpが0になった城のX座標
         """
         super().__init__()
-        self.bakuhatu1_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/bakuhatu1.png"), 0, 0.6) # 小爆発の画像を0.6倍にして読み込む
-        self.bakuhatu2_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/bakuhatu2.png"), 0, 0.8) # 中爆発の画像を0.8倍にして読み込む
-        self.bakuhatu3_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/bakuhatu3.png"), 0, 1.0) # 大爆発の画像を1.0倍にして読み込む
+        self.bakuhatu1_img = pg.transform.rotozoom(images[f"bakuhatu1"], 0, 0.6) # 小爆発の画像を0.6倍にして読み込む
+        self.bakuhatu2_img = pg.transform.rotozoom(images[f"bakuhatu2"], 0, 0.8) # 中爆発の画像を0.8倍にして読み込む
+        self.bakuhatu3_img = pg.transform.rotozoom(images[f"bakuhatu3"], 0, 1.0) # 大爆発の画像を1.0倍にして読み込む
         self.rect1 = self.bakuhatu1_img.get_rect()
         self.rect2 = self.bakuhatu2_img.get_rect()
         self.rect3 = self.bakuhatu3_img.get_rect()
@@ -356,8 +375,8 @@ class Collapse(pg.sprite.Sprite):
         引数1 zahyo:hpが0になった城の座標
         """
         super().__init__()
-        self.siro_houkai1_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/siro_houkai1.png"), 0, 4.75) # 味方の城の画像を4.75倍にして読み込む
-        self.siro_houkai2_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/siro_houkai2.png"), 0, 4.2) # 敵の城の画像を4.2倍にして読み込む
+        self.siro_houkai1_img = pg.transform.rotozoom(images[f"siro_houkai1"], 0, 4.75) # 味方の城の画像を4.75倍にして読み込む
+        self.siro_houkai2_img = pg.transform.rotozoom(images[f"siro_houkai2"], 0, 4.2) # 敵の城の画像を4.2倍にして読み込む
         self.rect1 = self.siro_houkai1_img.get_rect()
         self.rect2 = self.siro_houkai2_img.get_rect()
         self.rect1.center = zahyo, 550 # xが引数(zahyo),yが550の位置に設定
@@ -383,8 +402,8 @@ class Game(pg.sprite.Sprite):
         ゲームクリア・ゲームオーバーの画像を生成する
         """
         super().__init__()
-        self.gameclear_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/gameclear.png"), 0, 1.0) # gameclearの画像を読み込む
-        self.gameover_img = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/gameover.png"), 0, 1.5) # gameoverの画像を1.5倍にして読み込む
+        self.gameclear_img = pg.transform.rotozoom(images[f"gameclear"], 0, 1.0) # gameclearの画像を読み込む
+        self.gameover_img = pg.transform.rotozoom(images[f"gameover"], 0, 1.5) # gameoverの画像を1.5倍にして読み込む
         self.rect1 = self.gameclear_img.get_rect()
         self.rect2 = self.gameover_img.get_rect()
         self.rect1.center = 800, 250 # xが800,yが250の位置に設定
@@ -405,7 +424,7 @@ class Enemy(pg.sprite.Sprite):
     """
     敵に関するクラス
     """
-    imgs = [pg.image.load(f"{MAIN_DIR}/fig/enemy{i}.png") for i in range(1, 6)]
+    imgs = [images[f"enemy{i}"] for i in range(1, 6)]
     
     def __init__(self):
         super().__init__()
@@ -450,7 +469,7 @@ class Attack_effect(pg.sprite.Sprite):
         引数2 life：発生時間
         """
         super().__init__()
-        self.image = pg.image.load(f"{MAIN_DIR}/fig/attack_effect.png")
+        self.image = images[f"attack_effect"]
         self.rect = self.image.get_rect(center=(obj.rect.centerx+70, obj.rect.centery))
         self.life = life
 
@@ -470,7 +489,7 @@ class Boss(pg.sprite.Sprite):
 
     def __init__(self):
         super().__init__()
-        self.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/boss.png"), 0, 6.0)
+        self.image = pg.transform.rotozoom(images[f"boss"], 0, 6.0)
         
 
         self.tmr =random.randint(1, 100)
@@ -512,7 +531,7 @@ class Attack_effect_boss(pg.sprite.Sprite):
         引数2 life：発生時間
         """
         super().__init__()
-        self.image = pg.image.load(f"{MAIN_DIR}/fig/attack_effect2.png")
+        self.image = images[f"attack_effect2"]
         self.rect = self.image.get_rect(center=(obj.rect.centerx+250, obj.rect.centery))
 
         self.life = life
@@ -532,7 +551,7 @@ class Kanban(pg.sprite.Sprite):
         看板を置く
         """
         super().__init__()
-        img0 = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/kanban.png"), 0, 1)
+        img0 = pg.transform.rotozoom(images[f"kanban"], 0, 1)
         self.img = pg.transform.flip(img0, True, False)  # デフォルトの看板
         self.image = self.img
         self.rect = self.image.get_rect()
@@ -548,7 +567,7 @@ class Dragon(pg.sprite.Sprite):
     """
     ドラゴンに関するクラス
     """
-    imgs = [pg.image.load(f"{MAIN_DIR}/fig/dragon{i}.png") for i in range(1, 3)]
+    imgs = [images[f"dragon{i}"] for i in range(1, 3)]
     
     def __init__(self):
         super().__init__()
@@ -592,7 +611,7 @@ class Attack_effect_dragon(pg.sprite.Sprite):
         引数2 life：発生時間
         """
         super().__init__()
-        self.image = pg.image.load(f"{MAIN_DIR}/fig/attack_effect_dragon1.png")
+        self.image = images[f"attack_effect_dragon1"]
         self.rect = self.image.get_rect(center=(obj.rect.centerx+150, obj.rect.centery))
         self.life = life
 
@@ -608,7 +627,7 @@ class Attack_effect_dragon(pg.sprite.Sprite):
 def main():
     pg.display.set_caption("アニマル闘争")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load(f"{MAIN_DIR}/fig/haikei.jpg")
+    bg_img = images[f"haikei"]
     cats = pg.sprite.Group()
     giraffes = pg.sprite.Group()
     shotens = pg.sprite.Group()
@@ -709,7 +728,9 @@ def main():
         
         #射程の長いキリンに対する処理
         for giraffe in giraffes:
+            giraffe.atmo = False
             if giraffe.rect.center[0] - enemy_siro.rect.center[0] <= giraffe.range:  # 射程内に敵城がある場合
+                giraffe.atmo = True
                 giraffe.state = "atk"
                 giraffe.motion(enemy_siro, tmr, screen)
             elif giraffe.knockhp <= 999:
@@ -838,11 +859,16 @@ def main():
                     if tmr%ene.attacktime == ene.tmr:
                         if eneint == 1:
                             attack_e.add(Attack_effect(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                            cat.hp -= ene.attack_enemy  # 敵に攻撃
                         elif eneint == 2:
                             attack_e.add(Attack_effect_dragon(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                            cat.hp -= ene.attack_enemy  # 敵に攻撃
                         else:
-                            attack_e.add(Attack_effect_boss(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
-                        cat.hp -= ene.attack_enemy  # 敵に攻撃
+                            for cat2 in cats:
+                                if cat2.rect.center[0] - ene.rect.center[0] <= 350:  #ボスの範囲攻撃を設定
+                                    attack_e.add(Attack_effect_boss(ene, 6)) # 攻撃エフェクト発生:数字はエフェクトフレーム
+                                    cat2.hp -= ene.attack_enemy  # 敵に攻撃
+                        
                     cat.state = "atk"
                     if tmr%100 == cat.tmr:
                         ene.hp_enemy -= cat.attack
@@ -866,7 +892,9 @@ def main():
             if 10 <= cat.knockhp <= 100:
                 cat.state = "death"
                 shotens.add(Shoten(cat.rect.center))
-
+        for giraffe in giraffes:
+            if giraffe.atmo is not True:
+                giraffe.state = "normal"
         for enemy in [emys, dragon, boss]:
             #射程の長いキリンに対する処理
             for ene in enemy:
@@ -879,15 +907,13 @@ def main():
                         if tmr%200 == giraffe.tmr:
                             ene.hp_enemy -= giraffe.attack
                         if giraffe.tmr-7 <= tmr%200 <= giraffe.tmr+7:
-                            giraffe.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe2.png"), 0, 0.2)
+                            giraffe.image = pg.transform.rotozoom(images[f"giraffe2"], 0, 0.2)
                             screen.blit(giraffe.image, giraffe.rect)
                         else:
-                            giraffe.image = pg.transform.rotozoom(pg.image.load(f"{MAIN_DIR}/fig/giraffe.png"), 0, 0.2)
+                            giraffe.image = pg.transform.rotozoom(images[f"giraffe"], 0, 0.2)
                             screen.blit(giraffe.image, giraffe.rect)
                     elif giraffe.knockhp <= 999:
                         giraffe.state = "atk"
-                    else:
-                        giraffe.state = "normal"
                     if 10 <= giraffe.knockhp <= 100:
                         giraffe.state = "death"
                         shotens.add(Shoten(giraffe.rect.center))
